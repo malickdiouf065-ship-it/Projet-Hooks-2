@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📇 Contacts · gestionnaire élégant</title>
+  <!-- React & ReactDOM via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel pour JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Font Awesome pour les icônes (facultatif mais joli) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* ---------- RESET & GLOBAL ---------- */
+    * {
+      margin: 0;
+      padding: 0;  
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #e9f1f8 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    #root {
+      max-width: 1300px;
+      width: 100%;
+    }
+
+    /* ---------- APP CONTAINER ---------- */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1e2b3c, #2c3e50);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 2px solid rgba(44, 62, 80, 0.15);
+      padding-bottom: 0.75rem;
+    }
+
+    h1 i {
+      font-size: 2.2rem;
+      background: linear-gradient(145deg, #3498db, #2c3e50);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ---------- LAYOUT ---------- */
+    .main-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .left-column {
+      flex: 2;
+      min-width: 300px;
+    }
+
+    .right-column {
+      flex: 1;
+      min-width: 260px;
+      position: sticky;
+      top: 2rem;
+    }
+
+    /* ---------- CARTE CONTACT (design soigné) ---------- */
+    .contact-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 28px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      box-shadow: 0 15px 30px -10px rgba(0, 20, 30, 0.15), 
+                  inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      margin-bottom: 1rem;
+    }
+
+    .contact-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 35px -12px rgba(0, 30, 50, 0.25), 
+                  inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .contact-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.2);
+      background: #cdddee;
+      transition: transform 0.2s;
+    }
+
+    .contact-card:hover .contact-avatar {
+      transform: scale(1.02);
+    }
+
+    .contact-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .contact-name {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1e2b3c;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contact-detail {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #3f566e;
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contact-detail i {
+      width: 16px;
+      color: #517a9e;
+      font-size: 0.85rem;
+    }
+
+    .contact-actions {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      margin-left: 0.5rem;
+    }
+
+    .icon-btn {
+      background: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #2c3e50;
+      font-size: 1.1rem;
+      box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+    .icon-btn:hover {
+      background: #f0f6ff;
+      transform: scale(1.08);
+      color: #0f6cbf;
+      box-shadow: 0 10px 18px -8px rgba(20, 80, 140, 0.3);
+    }
+
+    .icon-btn.delete:hover {
+      background: #ffeeee;
+      color: #c0392b;
+    }
+
+    /* ---------- BARRE DE RECHERCHE + TRI ---------- */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0.8rem 1.2rem;
+      border-radius: 60px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 8px 20px -12px rgba(0, 30, 40, 0.2);
+    }
+
+    .search-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 40px;
+      padding: 0.5rem 1rem;
+      box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.02), 0 4px 12px -8px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-wrapper i {
+      color: #7e95ab;
+      margin-right: 0.6rem;
+    }
+
+    .search-wrapper input {
+      border: none;
+      background: transparent;
+      width: 100%;
+      font-size: 1rem;
+      padding: 0.4rem 0;
+      outline: none;
+      color: #1e2b3c;
+    }
+
+    .search-wrapper input::placeholder {
+      color: #95aec7;
+      font-weight: 400;
+    }
+
+    .sort-btn {
+      background: white;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      color: #1e2b3c;
+      box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+      border: 1px solid rgba(0, 0, 0, 0.02);
+      white-space: nowrap;
+    }
+
+    .sort-btn:hover {
+      background: #e6f0fa;
+      transform: translateY(-1px);
+    }
+
+    /* ---------- FORMULAIRE CONTACT ---------- */
+    .form-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 32px;
+      padding: 1.8rem 1.8rem 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 25px 40px -18px rgba(0, 20, 30, 0.4), 
+                  inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+      transition: all 0.3s;
+    }
+
+    .form-card h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1e2b3c;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-left: 6px solid #3498db;
+      padding-left: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #4a637b;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border-radius: 40px;
+      border: 1px solid rgba(170, 190, 210, 0.5);
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
+      color: #1e2b3c;
+    }
+
+    .form-group input:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
+      background: white;
+    }
+
+    .form-group input.error {
+      border-color: #e74c3c;
+      box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      margin-left: 1rem;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1.8rem;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 0.9rem 1.8rem;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(145deg, #2c3e50, #1e2b3c);
+      color: white;
+      box-shadow: 0 10px 20px -8px #1e2b3c90;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(145deg, #1e2b3c, #0f1a24);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(220, 230, 240, 0.7);
+      color: #2c3e50;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(200, 215, 230, 0.9);
+    }
+
+    /* ---------- ÉTAT VIDE ---------- */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 40px;
+      backdrop-filter: blur(8px);
+      color: #4d6a85;
+    }
+
+    .empty-state i {
+      font-size: 3.5rem;
+      color: #a6bed6;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 750px) {
+      .main-panel {
+        flex-direction: column;
+      }
+      .right-column {
+        position: static;
+        width: 100%;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .contact-card {
+        flex-wrap: wrap;
+      }
+      .contact-actions {
+        margin-left: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // ---------- HOOKS & COMPOSANTS ----------
+    const { useState, useEffect, useMemo } = React;
+
+    // ---- CARTE DE CONTACT ----
+    const ContactCard = ({ contact, onEdit, onDelete }) => {
+      return (
+        <div className="contact-card">
+          <img
+            className="contact-avatar"
+            src={contact.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.fullName)}&background=3498db&color=fff&size=70&rounded=true`}
+            alt={contact.fullName}
+            onError={(e) => {
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.fullName)}&background=2c3e50&color=fff&size=70&rounded=true`;
+            }}
+          />
+          <div className="contact-info">
+            <div className="contact-name">{contact.fullName}</div>
+            <div className="contact-detail">
+              <i className="fas fa-envelope"></i> {contact.email}
+            </div>
+            <div className="contact-detail">
+              <i className="fas fa-phone-alt"></i> {contact.phoneNumber}
+            </div>
+          </div>
+          <div className="contact-actions">
+            <button className="icon-btn" onClick={() => onEdit(contact)} title="Modifier">
+              <i className="fas fa-pencil-alt"></i>
+            </button>
+            <button className="icon-btn delete" onClick={() => onDelete(contact.id)} title="Supprimer">
+              <i className="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // ---- BARRE DE RECHERCHE + TRI ----
+    const SearchBar = ({ searchTerm, onSearchChange, sortOrder, onToggleSort }) => {
+      return (
+        <div className="toolbar">
+          <div className="search-wrapper">
+            <i className="fas fa-search"></i>
+            <input
+              type="text"
+              placeholder="Rechercher par nom complet..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+          <button className="sort-btn" onClick={onToggleSort}>
+            <i className={`fas fa-sort-alpha-${sortOrder === 'asc' ? 'down' : 'up'}`}></i>
+            {sortOrder === 'asc' ? 'A → Z' : 'Z → A'}
+          </button>
+        </div>
+      );
+    };
+
+    // ---- FORMULAIRE DE CONTACT (ajout & édition) ----
+    const ContactForm = ({ currentContact, onSave, onCancelEdit }) => {
+      const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        image: ''
+      });
+      const [errors, setErrors] = useState({});
+
+      // Pré-remplir le formulaire si on édite
+      useEffect(() => {
+        if (currentContact) {
+          setFormData({
+            fullName: currentContact.fullName || '',
+            email: currentContact.email || '',
+            phoneNumber: currentContact.phoneNumber || '',
+            image: currentContact.image || ''
+          });
+        } else {
+          // Réinitialiser si pas d'édition
+          setFormData({ fullName: '', email: '', phoneNumber: '', image: '' });
+        }
+        setErrors({});
+      }, [currentContact]);
+
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+          setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+      };
+
+      const validate = () => {
+        const newErrors = {};
+        if (!formData.fullName.trim()) newErrors.fullName = 'Le nom complet est requis.';
+        if (!formData.email.trim()) {
+          newErrors.email = "L'email est requis.";
+        } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+          newErrors.email = "Format d'email invalide.";
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+        onSave({
+          ...formData,
+          id: currentContact ? currentContact.id : Date.now()
+        });
+        if (!currentContact) {
+          setFormData({ fullName: '', email: '', phoneNumber: '', image: '' });
+        }
+      };
+
+      return (
+        <div className="form-card">
+          <h2>
+            <i className={`fas fa-${currentContact ? 'user-edit' : 'user-plus'}`}></i>
+            {currentContact ? 'Modifier le contact' : 'Nouveau contact'}
+          </h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Nom complet *</label>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="ex. Marie Curie"
+                className={errors.fullName ? 'error' : ''}
+              />
+              {errors.fullName && <div className="error-message">{errors.fullName}</div>}
+            </div>
+            <div className="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="marie@exemple.com"
+                className={errors.email ? 'error' : ''}
+              />
+              {errors.email && <div className="error-message">{errors.email}</div>}
+            </div>
+            <div className="form-group">
+              <label>Téléphone</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                placeholder="06 12 34 56 78"
+              />
+            </div>
+            <div className="form-group">
+              <label>URL de l'image (profil)</label>
+              <input
+                type="text"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                placeholder="https://exemple.com/photo.jpg"
+              />
+            </div>
+            <div className="form-actions">
+              <button type="submit" className="btn-primary">
+                <i className="fas fa-save"></i> {currentContact ? 'Mettre à jour' : 'Ajouter'}
+              </button>
+              {currentContact && (
+                <button type="button" className="btn-secondary" onClick={onCancelEdit}>
+                  <i className="fas fa-times"></i> Annuler
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      );
+    };
+
+    // ---- APPLICATION PRINCIPALE ----
+    const App = () => {
+      const [contacts, setContacts] = useState([]);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [sortOrder, setSortOrder] = useState('asc'); // 'asc' ou 'desc'
+      const [editingContact, setEditingContact] = useState(null);
+
+      // Chargement depuis le localStorage au premier rendu
+      useEffect(() => {
+        const stored = localStorage.getItem('contactsApp_data');
+        if (stored) {
+          try {
+            setContacts(JSON.parse(stored));
+          } catch (e) {
+            console.warn('Erreur lecture localStorage', e);
+          }
+        } else {
+          // Petits contacts de démonstration pour que ce soit joli dès l'ouverture
+          const demoContacts = [
+            { id: 1001, fullName: 'Clara Dupont', email: 'clara.dupont@exemple.fr', phoneNumber: '06 11 22 33 44', image: 'https://i.pravatar.cc/150?img=32' },
+            { id: 1002, fullName: 'Antoine Lefèvre', email: 'antoine.lefevre@mail.com', phoneNumber: '07 88 99 00 11', image: 'https://i.pravatar.cc/150?img=12' },
+            { id: 1003, fullName: 'Sophie Martin', email: 'sophie.m@entreprise.fr', phoneNumber: '01 23 45 67 89', image: 'https://i.pravatar.cc/150?img=45' },
+            { id: 1004, fullName: 'Lucas Bernard', email: 'lucas.b@pro.fr', phoneNumber: '06 12 34 56 78', image: 'https://i.pravatar.cc/150?img=68' }
+          ];
+          setContacts(demoContacts);
+        }
+      }, []);
+
+      // Sauvegarde automatique à chaque changement de contacts
+      useEffect(() => {
+        if (contacts.length > 0 || localStorage.getItem('contactsApp_data') !== null) {
+          localStorage.setItem('contactsApp_data', JSON.stringify(contacts));
+        }
+      }, [contacts]);
+
+      // Ajouter ou mettre à jour un contact
+      const saveContact = (contactData) => {
+        if (editingContact) {
+          // Modification
+          setContacts(prev => prev.map(c => c.id === contactData.id ? contactData : c));
+          setEditingContact(null);
+        } else {
+          // Ajout
+          setContacts(prev => [contactData, ...prev]);
+        }
+      };
+
+      // Supprimer
+      const deleteContact = (id) => {
+        setContacts(prev => prev.filter(c => c.id !== id));
+        // Si on supprime le contact en cours d'édition, annuler l'édition
+        if (editingContact && editingContact.id === id) {
+          setEditingContact(null);
+        }
+      };
+
+      // Passer en mode édition
+      const editContact = (contact) => {
+        setEditingContact(contact);
+      };
+
+      // Annuler l'édition
+      const cancelEdit = () => {
+        setEditingContact(null);
+      };
+
+      // Inverser l'ordre de tri
+      const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+      };
+
+      // Filtrer et trier les contacts
+      const filteredAndSortedContacts = useMemo(() => {
+        let filtered = contacts.filter(contact =>
+          contact.fullName.toLowerCase().includes(searchTerm.toLowerCase().trim())
+        );
+        filtered.sort((a, b) => {
+          const nameA = a.fullName.toLowerCase();
+          const nameB = b.fullName.toLowerCase();
+          if (sortOrder === 'asc') return nameA.localeCompare(nameB);
+          else return nameB.localeCompare(nameA);
+        });
+        return filtered;
+      }, [contacts, searchTerm, sortOrder]);
+
+      return (
+        <div className="app-container">
+          <h1>
+            <i className="fas fa-address-book"></i> Mes contacts
+          </h1>
+          <div className="main-panel">
+            <div className="left-column">
+              <SearchBar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                sortOrder={sortOrder}
+                onToggleSort={toggleSortOrder}
+              />
+              {filteredAndSortedContacts.length === 0 ? (
+                <div className="empty-state">
+                  <i className="fas fa-user-friends"></i>
+                  <p>Aucun contact trouvé</p>
+                  <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', opacity: 0.7 }}>
+                    Ajoutez un contact ou modifiez votre recherche.
+                  </p>
+                </div>
+              ) : (
+                filteredAndSortedContacts.map(contact => (
+                  <ContactCard
+                    key={contact.id}
+                    contact={contact}
+                    onEdit={editContact}
+                    onDelete={deleteContact}
+                  />
+                ))
+              )}
+            </div>
+            <div className="right-column">
+              <ContactForm
+                currentContact={editingContact}
+                onSave={saveContact}
+                onCancelEdit={cancelEdit}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ---- RENDU ----
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
